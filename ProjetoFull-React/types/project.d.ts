@@ -1,7 +1,7 @@
-declare namespace Demo {
+declare namespace Project {
     type Usuario = {
         id?: number;
-        name: string;
+        nome: string;
         login: string;
         email: string;
         senha: string;

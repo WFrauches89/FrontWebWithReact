@@ -5,11 +5,7 @@ import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { FileUpload } from 'primereact/fileupload';
-import { InputNumber, InputNumberValueChangeEvent } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { RadioButton, RadioButtonChangeEvent } from 'primereact/radiobutton';
-import { Rating } from 'primereact/rating';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
@@ -17,23 +13,22 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Project } from '@/types';
 import { UsuarioService } from '@/service/usuarioSercice';
 
-/* @todo Used 'as any' for types here. Will fix in next version due to onSelectionChange event type issue. */
-const Crud = () => {
+const Usuario = () => {
     let usuarioVazio: Project.Usuario = {
         id: 0,
-        name: '',
+        nome: '',
         login: '',
         email: '',
         senha: ''
     };
 
-    const [usuarios, setUsuarios] = useState<Project.Usuario>([]);
+    const [usuarios, setUsuarios] = useState<Project.Usuario[]>([]);
     const [apiCalled, setApiCalled] = useState(false);
     const [usuarioDialog, setUsuarioDialog] = useState(false);
     const [deleteUsuarioDialog, setDeleteUsuarioDialog] = useState(false);
     const [deleteUsuariosDialog, setDeleteUsuariosDialog] = useState(false);
     const [usuario, setUsuario] = useState<Project.Usuario>(usuarioVazio);
-    const [selectedUsuarios, setSelectedUsuarios] = useState(null);
+    const [selectedUsuarios, setSelectedUsuarios] = useState<Project.Usuario[]>([]);
     const [submitted, setSubmitted] = useState(false);
     const [globalFilter, setGlobalFilter] = useState('');
     const toast = useRef<Toast>(null);
@@ -91,14 +86,11 @@ const Crud = () => {
                     }
                 })
                 .catch((error) => {
-                    console.log(error);
-                    if (toast.current) {
-                        toast.current.show({
-                            severity: 'error',
-                            summary: 'Erro!',
-                            detail: 'Erro ao salvar usuário!' + error.data.message
-                        });
-                    }
+                    toast.current?.show({
+                        severity: 'error',
+                        summary: 'Erro!',
+                        detail: 'Erro ao salvar usuário!' + error.data.message
+                    });
                 });
         } else {
             usuarioService
@@ -107,22 +99,18 @@ const Crud = () => {
                     setUsuarioDialog(false);
                     setUsuario(usuarioVazio);
                     setApiCalled(false);
-                    if (toast.current) {
-                        toast.current.show({
-                            severity: 'info',
-                            summary: 'Sucesso!',
-                            detail: 'Usuário alterado com sucesso!'
-                        });
-                    }
+                    toast.current?.show({
+                        severity: 'info',
+                        summary: 'Sucesso!',
+                        detail: 'Usuário alterado com sucesso!'
+                    });
                 })
                 .catch((error) => {
-                    if (toast.current) {
-                        toast.current.show({
-                            severity: 'error',
-                            summary: 'Erro!',
-                            detail: 'Erro ao alterar usuário!' + error.data.message
-                        });
-                    }
+                    toast.current?.show({
+                        severity: 'error',
+                        summary: 'Erro!',
+                        detail: 'Erro ao alterar usuário!' + error.data.message
+                    });
                 });
         }
     };
@@ -138,52 +126,30 @@ const Crud = () => {
     };
 
     const deleteUsuario = () => {
-        usuarioService
-            .deleteUser(usuario.id)
-            .then(() => {
-                setUsuarioDialog(false);
-                setUsuario(usuarioVazio);
-                setDeleteUsuarioDialog(false);
-                setApiCalled(false);
-                if (toast.current) {
-                    toast.current.show({
+        if (usuario.id) {
+            usuarioService
+                .deleteUser(usuario.id)
+                .then(() => {
+                    setUsuarioDialog(false);
+                    setUsuario(usuarioVazio);
+                    setDeleteUsuarioDialog(false);
+                    setApiCalled(false);
+
+                    toast.current?.show({
                         severity: 'info',
                         summary: 'Sucesso!',
                         detail: 'Usuário deletado com sucesso!'
                     });
-                }
-            })
-            .catch((error) => {
-                if (toast.current) {
-                    toast.current.show({
+                })
+                .catch((error) => {
+                    toast.current?.show({
                         severity: 'error',
                         summary: 'Erro!',
                         detail: 'Erro ao deletar usuário!' + error.data.message
                     });
-                }
-            });
+                });
+        }
     };
-
-    // const findIndexById = (id: string) => {
-    //     let index = -1;
-    //     for (let i = 0; i < (products as any)?.length; i++) {
-    //         if ((products as any)[i].id === id) {
-    //             index = i;
-    //             break;
-    //         }
-    //     }
-
-    //     return index;
-    // };
-
-    // const createId = () => {
-    //     let id = '';
-    //     let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    //     for (let i = 0; i < 5; i++) {
-    //         id += chars.charAt(Math.floor(Math.random() * chars.length));
-    //     }
-    //     return id;
-    // };
 
     const exportCSV = () => {
         dt.current?.exportCSV();
@@ -194,39 +160,40 @@ const Crud = () => {
     };
 
     const deleteSelectedUsuarios = () => {
-        // let _products = (products as any)?.filter((val: any) => !(selectedProducts as any)?.includes(val));
-        // setUsuarios(_products);
-        // setDeleteUsuariosDialog(false);
-        // setSelectedUsuarios(null);
-        // toast.current?.show({
-        //     severity: 'success',
-        //     summary: 'Successful',
-        //     detail: 'Products Deleted',
-        //     life: 3000
-        // });
+        Promise.all(
+            selectedUsuarios.map(async (_usuarios) => {
+                if (_usuarios.id) {
+                    await usuarioService.deleteUser(_usuarios.id);
+                }
+            })
+        )
+            .then((response) => {
+                setApiCalled(false);
+                setSelectedUsuarios([]);
+                setDeleteUsuariosDialog(false);
+                toast.current?.show({
+                    severity: 'info',
+                    summary: 'Sucesso!',
+                    detail: 'Usuário deletado com sucesso!',
+                    life: 3000
+                });
+            })
+            .catch((error) => {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Erro!',
+                    detail: 'Erro ao deletar usuário!' + error.data.message
+                });
+            });
     };
 
-    // const onCategoryChange = (e: RadioButtonChangeEvent) => {
-    //     let _product = { ...product };
-    //     _product['category'] = e.value;
-    //     setUsuario(_product);
-    // };
-
-    const onInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, nome: string) => {
+    const onInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, name: keyof Omit<Project.Usuario, 'id'>) => {
         const val = (e.target && e.target.value) || '';
-        let _usuario = { ...usuario };
-        _usuario[`${nome}`] = val;
-
-        setUsuario(_usuario);
+        setUsuario((prevState) => ({
+            ...prevState,
+            [name]: val
+        }));
     };
-
-    // const onInputNumberChange = (e: InputNumberValueChangeEvent, name: string) => {
-    //     const val = e.value || 0;
-    //     let _product = { ...product };
-    //     _product[`${name}`] = val;
-
-    //     setUsuario(_product);
-    // };
 
     const leftToolbarTemplate = () => {
         return (
@@ -283,51 +250,6 @@ const Crud = () => {
             </>
         );
     };
-
-    // const imageBodyTemplate = (rowData: Project.Usuario) => {
-    //     return (
-    //         <>
-    //             <span className="p-column-title">Image</span>
-    //             <img src={`/demo/images/product/${rowData.image}`} alt={rowData.image} className="shadow-2" width="100" />
-    //         </>
-    //     );
-    // };
-
-    // const priceBodyTemplate = (rowData: Project.Usuario) => {
-    //     return (
-    //         <>
-    //             <span className="p-column-title">Price</span>
-    //             {formatCurrency(rowData.price as number)}
-    //         </>
-    //     );
-    // };
-
-    // const categoryBodyTemplate = (rowData: Project.Usuario) => {
-    //     return (
-    //         <>
-    //             <span className="p-column-title">Category</span>
-    //             {rowData.category}
-    //         </>
-    //     );
-    // };
-
-    // const ratingBodyTemplate = (rowData: Project.Usuario) => {
-    //     return (
-    //         <>
-    //             <span className="p-column-title">Reviews</span>
-    //             <Rating value={rowData.rating} readOnly cancel={false} />
-    //         </>
-    //     );
-    // };
-
-    // const statusBodyTemplate = (rowData: Project.Usuario) => {
-    //     return (
-    //         <>
-    //             <span className="p-column-title">Status</span>
-    //             <span className={`product-badge status-${rowData.inventoryStatus?.toLowerCase()}`}>{rowData.inventoryStatus}</span>
-    //         </>
-    //     );
-    // };
 
     const actionBodyTemplate = (rowData: Project.Usuario) => {
         return (
@@ -396,11 +318,6 @@ const Crud = () => {
                         <Column field="nome" header="Nome" sortable body={nomeBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="login" header="Login" sortable body={loginBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="email" header="Email" sortable body={emailBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
-                        {/* <Column header="Image" body={imageBodyTemplate}></Column> */}
-                        {/* <Column field="price" header="Price" body={priceBodyTemplate} sortable></Column> */}
-                        {/* <Column field="category" header="Category" sortable body={categoryBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column field="rating" header="Reviews" body={ratingBodyTemplate} sortable></Column> */}
-                        {/* <Column field="inventoryStatus" header="Status" body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column> */}
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
@@ -462,57 +379,6 @@ const Crud = () => {
                             />
                             {submitted && !usuario.email && <small className="p-invalid">Email obrigatório.</small>}
                         </div>
-                        {/* <div className="field">
-                            <label htmlFor="email">Email</label>
-                            <InputText
-                                id="email"
-                                value={usuario.emailAddress}
-                                onChange={(e) => onInputChange(e, 'email')}
-                                required
-                                autoFocus
-                                className={classNames({
-                                    'p-invalid': submitted && !usuario.emailAddress
-                                })}
-                            />
-                            {submitted && !usuario.emailAddress && <small className="p-invalid">Email obrigatório.</small>}
-                        </div> */}
-                        {/* <div className="field">
-                            <label htmlFor="description">Description</label>
-                            <InputTextarea id="description" value={product.description} onChange={(e) => onInputChange(e, 'description')} required rows={3} cols={20} />
-                        </div> */}
-
-                        {/* <div className="field">
-                            <label className="mb-3">Category</label>
-                            <div className="formgrid grid">
-                                <div className="field-radiobutton col-6">
-                                    <RadioButton inputId="category1" name="category" value="Accessories" onChange={onCategoryChange} checked={product.category === 'Accessories'} />
-                                    <label htmlFor="category1">Accessories</label>
-                                </div>
-                                <div className="field-radiobutton col-6">
-                                    <RadioButton inputId="category2" name="category" value="Clothing" onChange={onCategoryChange} checked={product.category === 'Clothing'} />
-                                    <label htmlFor="category2">Clothing</label>
-                                </div>
-                                <div className="field-radiobutton col-6">
-                                    <RadioButton inputId="category3" name="category" value="Electronics" onChange={onCategoryChange} checked={product.category === 'Electronics'} />
-                                    <label htmlFor="category3">Electronics</label>
-                                </div>
-                                <div className="field-radiobutton col-6">
-                                    <RadioButton inputId="category4" name="category" value="Fitness" onChange={onCategoryChange} checked={product.category === 'Fitness'} />
-                                    <label htmlFor="category4">Fitness</label>
-                                </div>
-                            </div>
-                        </div> */}
-
-                        {/* <div className="formgrid grid">
-                            <div className="field col">
-                                <label htmlFor="price">Price</label>
-                                <InputNumber id="price" value={product.price} onValueChange={(e) => onInputNumberChange(e, 'price')} mode="currency" currency="USD" locale="en-US" />
-                            </div>
-                            <div className="field col">
-                                <label htmlFor="quantity">Quantity</label>
-                                <InputNumber id="quantity" value={product.quantity} onValueChange={(e) => onInputNumberChange(e, 'quantity')} />
-                            </div>
-                        </div> */}
                     </Dialog>
 
                     <Dialog visible={deleteUsuarioDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteUsuarioDialogFooter} onHide={hideDeleteUsuarioDialog}>
@@ -538,4 +404,4 @@ const Crud = () => {
     );
 };
 
-export default Crud;
+export default Usuario;
