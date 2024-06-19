@@ -11,7 +11,7 @@ import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
 import React, { useEffect, useRef, useState } from 'react';
 import { Project } from '@/types';
-import { UsuarioService } from '@/service/usuarioSercice';
+import { UsuarioService } from '@/service/usuarioService';
 
 const Usuario = () => {
     let usuarioVazio: Project.Usuario = {
@@ -40,7 +40,6 @@ const Usuario = () => {
             usuarioService
                 .getAll()
                 .then((response) => {
-                    console.log(response.data);
                     setUsuarios(response.data);
                 })
                 .catch((error) => console.log(error))
@@ -72,7 +71,7 @@ const Usuario = () => {
 
         if (!usuario.id) {
             usuarioService
-                .createUser(usuario)
+                .create(usuario)
                 .then((response) => {
                     setUsuarioDialog(false);
                     setUsuario(usuarioVazio);
@@ -94,7 +93,7 @@ const Usuario = () => {
                 });
         } else {
             usuarioService
-                .updateUser(usuario.id, usuario)
+                .update(usuario.id, usuario)
                 .then((response) => {
                     setUsuarioDialog(false);
                     setUsuario(usuarioVazio);
@@ -128,7 +127,7 @@ const Usuario = () => {
     const deleteUsuario = () => {
         if (usuario.id) {
             usuarioService
-                .deleteUser(usuario.id)
+                .delete(usuario.id)
                 .then(() => {
                     setUsuarioDialog(false);
                     setUsuario(usuarioVazio);
@@ -163,7 +162,7 @@ const Usuario = () => {
         Promise.all(
             selectedUsuarios.map(async (_usuarios) => {
                 if (_usuarios.id) {
-                    await usuarioService.deleteUser(_usuarios.id);
+                    await usuarioService.delete(_usuarios.id);
                 }
             })
         )
