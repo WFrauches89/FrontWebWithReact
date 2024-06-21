@@ -12,4 +12,15 @@ declare namespace Project {
         nome: string;
         chave: string;
     };
+
+    type Perfil = {
+        id?: number;
+        descricao: string;
+    };
+
+    type PerfilUsuario = {
+        id?: number;
+        perfilDTO: Perfil;
+        usuarioDTO: Usuario;
+    };
 }

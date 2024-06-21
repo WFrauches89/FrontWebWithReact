@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 export const axiosInstace = axios.create({
-    baseURL: 'http://localhost:8080'
+    baseURL: process.env.NEXT_PUBLIC_BACKEND_URL_API
+    //'http://localhost:8080'
 });
 
 export class BaseService {
