@@ -23,4 +23,10 @@ declare namespace Project {
         perfilDTO: Perfil;
         usuarioDTO: Usuario;
     };
+
+    type PermissaoPerfilRecurso = {
+        id?: number;
+        perfilDTO: Perfil;
+        recursosDTO: Recurso;
+    };
 }
