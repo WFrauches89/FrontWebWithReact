@@ -33,8 +33,6 @@ const LoginPage = () => {
         loginService
             .logar(username, password)
             .then((response) => {
-                console.log('Sucesso');
-                console.log(response.data.token);
                 localStorage.setItem('TOKEN_APLICACAO_FRONTEND', response.data.token);
                 toast.current?.show({
                     severity: 'info',
@@ -42,11 +40,11 @@ const LoginPage = () => {
                     detail: 'Usuário logado com sucesso!',
                     sticky: true
                 });
-                console.log('Sucesso');
-                console.log(response.data.token);
+
                 setTimeout(() => {
                     rota();
                 }, 5000);
+                window.location.reload();
             })
             .catch(() => {
                 console.log('Error');

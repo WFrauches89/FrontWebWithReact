@@ -11,7 +11,7 @@ import { classNames } from 'primereact/utils';
 import { LoginService } from '@/service/loginService';
 import { Toast } from 'primereact/toast';
 
-const LoginPage = () => {
+const NewUserPage = () => {
     let usuarioVazio: Project.Usuario = {
         nome: '',
         login: '',
@@ -119,4 +119,4 @@ const LoginPage = () => {
     );
 };
 
-export default LoginPage;
+export default NewUserPage;
